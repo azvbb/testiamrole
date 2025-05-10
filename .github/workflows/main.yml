@@ -1,30 +1,54 @@
+name: Launch EC2 with Key Pair
+
 on:
-  push:
-    branches: [ main ]
-  pull_request:
-    branches: [ main ]
+  workflow_dispatch:
+    inputs:
+      instance_name:
+        description: "EC2 instance name"
+        required: true
+        default: "gh-instance"
 
 env:
-  
-  AWS_REGION : "eu-west-1" #Change to reflect your Region
+  AWS_REGION: "eu-west-1"
 
-# Permission can be added at job level or workflow level    
 permissions:
-      id-token: write   # This is required for requesting the JWT
-      contents: read    # This is required for actions/checkout
+  id-token: write
+  contents: read
+
 jobs:
-  AssumeRoleAndCallIdentity:
+  create-and-launch:
     runs-on: ubuntu-latest
+
     steps:
-      - name: Git clone the repository
+      - name: Checkout repository
         uses: actions/checkout@v3
-      - name: configure aws credentials
+
+      - name: Configure AWS credentials (OIDC)
         uses: aws-actions/configure-aws-credentials@v1.7.0
         with:
-          role-to-assume: arn:aws:iam::411640679017:role/GitHubActionsRole #change to reflect your IAM role’s ARN
+          role-to-assume: arn:aws:iam::411640679017:role/GitHubActionsRole
           role-session-name: GitHub_to_AWS_via_FederatedOIDC
           aws-region: ${{ env.AWS_REGION }}
-      # Hello from AWS: WhoAmI
-      - name: Sts GetCallerIdentity
+
+      - name: Create EC2 key pair
+        id: create_key
         run: |
-          aws sts get-caller-identity
+          aws ec2 create-key-pair \
+            --key-name "${{ github.event.inputs.instance_name }}-key" \
+            --key-type rsa \
+            --key-format pem \
+            --query 'KeyMaterial' \
+            --output text > key.pem
+
+          chmod 400 key.pem
+
+      - name: Launch EC2 instance
+        run: |
+          aws ec2 run-instances \
+            --image-id ami-04e601abe3e1a910f \ # Replace with valid AMI in eu-west-1
+            --instance-type t2.micro \
+            --key-name "${{ github.event.inputs.instance_name }}-key" \
+            --tag-specifications "ResourceType=instance,Tags=[{Key=Name,Value=${{ github.event.inputs.instance_name }} }]" \
+            --security-group-ids sg-xxxxxxxxxxxxxxxxx \
+            --subnet-id subnet-xxxxxxxxxxxxxxxxx \
+            --region $AWS_REGION
