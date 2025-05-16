@@ -51,9 +51,9 @@ jobs:
       - name: Launch EC2 instance
         run: |
           aws ec2 run-instances \
-          --image-id ami-04e7764922e1e3a57 \
+          --image-id ami-0df368112825f8d8f \
           --instance-type t2.micro \
-          --key-name "${{ github.event.inputs.instance_name }}-key" \
+          --key-name "gh-instance-key" \
           --tag-specifications "ResourceType=instance,Tags=[{Key=Name,Value=${{ github.event.inputs.instance_name }} }]" \
           --region $AWS_REGION
 
