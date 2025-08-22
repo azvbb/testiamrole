@@ -4,6 +4,6 @@ on:
 
 jobs:
   call-reusable:
-    uses: azvbb/testiamrole/.github/workflows/reusable.yml@test_call
+    uses: azvbb/testiamrole/.github/workflows/resuable.yml@test_call
     with:
       username: "Azab"
