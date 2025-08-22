@@ -1,0 +1,13 @@
+name: Reusable Workflow
+on:
+  workflow_call:
+    inputs:
+      username:
+        required: false
+        type: string
+        default: "Ibrahim"
+jobs:
+  greet:
+    runs-on: ubuntu-latest
+    steps:
+      - run: echo "Hello ${{ inputs.username }} from test_dispatch branch"
