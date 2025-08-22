@@ -1,7 +1,6 @@
 name: Call Reusable from Branch
 on:
   workflow_dispatch:
-  push:
 
 jobs:
   call-reusable:
